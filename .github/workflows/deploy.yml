@@ -1,0 +1,28 @@
+name: Deploy App
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+
+    - name: Deploy via SSH
+      uses: appleboy/ssh-action@v0.1.10
+      with:
+        host: ${{ secrets.HOST }}
+        username: ubuntu
+        key: ${{ secrets.SSH_KEY }}
+        script: |
+          cd ~/devops-demo
+          git pull origin main
+          docker build -t devops-app .
+          docker stop devops-container || true
+          docker rm devops-container || true
+          docker run -d -p 80:80 --name devops-container devops-app
